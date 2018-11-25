@@ -2,53 +2,60 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import MainPage from './MainPage';
 
-const mockProps = {
-  onRequestRobots: jest.fn(),
-  robots: [],
-  searchField: '',
-  isPending: false
+const mockProps = (customProps = {}) => {
+  return {
+    onRequestRobots: jest.fn(),
+    robots: customProps.robots || [],
+    searchField: customProps.searchField || '',
+    isPending: customProps.isPending || false
+  }
 }
 
-let wrapper;
-
-beforeEach(() => {
-  wrapper = shallow(<MainPage { ...mockProps } />);
-})
-
 it('renders MainPage', () => {
+  const wrapper = shallow(<MainPage { ...mockProps() } />);
+
   expect(wrapper).toMatchSnapshot();
 })
 
-it('shows the Loading text if pending is true', () => {
-  const mockPropsWithPending = {
-    ...mockProps,
-    isPending: true
-  }
-  const wrapperWithPending = shallow(<MainPage { ...mockPropsWithPending } />);
-  expect(wrapperWithPending.find('h1.loading').length).toEqual(1);
+it('shows the Loading text if isPending is true', () => {
+  const wrapper = shallow(<MainPage { ...mockProps({ isPending: true }) } />);
+
+  expect(wrapper.find('h1.loading').length).toEqual(1);
 })
 
-it('filters robots correctly', () => {
-  expect(wrapper.instance().filterRobots()).toEqual([])
+describe('filtering robots', () => {
+  it('returns an empty list when there are no robots', () => {
+    const wrapper = shallow(<MainPage { ...mockProps() } />);
 
-  const mockRobot = {
-    id: 3,
-    name: 'Jane',
-    email: 'jane@email.com'
-  }
+    expect(wrapper.instance().filterRobots()).toEqual([]);
+  })
 
-  const mockProps2 = {
-    ...mockProps,
-    robots: [mockRobot],
-    searchField: mockRobot.name.substring(0, 2)
-  }
-  const wrapper2 = shallow(<MainPage {...mockProps2 } />);
-  expect(wrapper2.instance().filterRobots()).toEqual([mockRobot]);
+  const janeRobot = { id: 3, name: 'Jane', email: 'jane@email.com' };
+  const daveRobot = { id: 4, name: 'Dave', email: 'dave@email.com' };
 
-  const mockProps3 = {
-    ...mockProps2,
-    searchField: 'nope'
-  }
-  const wrapper3 = shallow(<MainPage {...mockProps3 } />);
-  expect(wrapper3.instance().filterRobots()).toEqual([]);
+  it('returns all robots when searchField is empty', () => {
+    const wrapper = shallow(<MainPage { ...mockProps({ robots: [janeRobot, daveRobot] }) } />);
+
+    expect(wrapper.instance().filterRobots()).toEqual([janeRobot, daveRobot]);
+  })
+
+  it('returns only the robots with names that at least partially match the searchField text', () => {
+    const customProps = {
+      robots: [janeRobot, daveRobot],
+      searchField: janeRobot.name.substring(0, 2)
+    };
+    const wrapper = shallow(<MainPage { ...mockProps(customProps) } />);
+
+    expect(wrapper.instance().filterRobots()).toEqual([janeRobot]);
+  })
+
+  it('returns an empty list when there are no robots with names that match the searchField text', () => {
+    const customProps = {
+      robots: [janeRobot, daveRobot],
+      searchField: 'nope'
+    };
+    const wrapper = shallow(<MainPage { ...mockProps(customProps) } />);
+
+    expect(wrapper.instance().filterRobots()).toEqual([]);
+  })
 })
