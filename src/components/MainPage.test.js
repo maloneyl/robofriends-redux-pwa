@@ -19,6 +19,15 @@ it('renders MainPage', () => {
   expect(wrapper).toMatchSnapshot();
 })
 
+it('shows the Loading text if pending is true', () => {
+  const mockPropsWithPending = {
+    ...mockProps,
+    isPending: true
+  }
+  const wrapperWithPending = shallow(<MainPage { ...mockPropsWithPending } />);
+  expect(wrapperWithPending.find('h1.loading').length).toEqual(1);
+})
+
 it('filters robots correctly', () => {
   expect(wrapper.instance().filterRobots()).toEqual([])
 

@@ -26,7 +26,7 @@ class MainPage extends Component {
         <Header />
         <SearchBox searchChange={onSearchChange}/>
         <Scroll>
-          { isPending ? <h1>Loading</h1> :
+          { isPending ? <h1 className='loading'>Loading</h1> :
             <ErrorBoundary>
               <CardList robots={this.filterRobots()} />
             </ErrorBoundary>
